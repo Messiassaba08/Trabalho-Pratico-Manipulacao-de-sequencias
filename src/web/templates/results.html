@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Search Results</h1>
+        {% if results %}
+            <ul class="results-list">
+                {% for result in results %}
+                    <li>
+                        <h2>{{ result.title }}</h2>
+                        <p>{{ result.snippet }}</p>
+                        <a href="{{ result.url }}">Read more</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <div class="pagination">
+                {% if page > 1 %}
+                    <a href="{{ url_for('search', query=query, page=page-1) }}">Previous</a>
+                {% endif %}
+                <span>Page {{ page }} of {{ total_pages }}</span>
+                {% if page < total_pages %}
+                    <a href="{{ url_for('search', query=query, page=page+1) }}">Next</a>
+                {% endif %}
+            </div>
+        {% else %}
+            <p>No results found for your query.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
