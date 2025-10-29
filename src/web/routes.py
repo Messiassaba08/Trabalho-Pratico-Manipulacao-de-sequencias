@@ -5,7 +5,7 @@ from ri.ranking import docs_for_ast, score_docs
 main = Blueprint('main', __name__)
 
 BASE_HTML = """
-<h2>BBC Search Engine</h2>
+<h2>Buscador</h2>
 <form action="{{ url_for('main.search') }}" method="get">
   <input type="text" name="q" value="{{ q|default('') }}" size="60"/>
   <button type="submit">Buscar</button>

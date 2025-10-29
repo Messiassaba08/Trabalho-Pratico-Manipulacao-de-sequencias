@@ -1,7 +1,7 @@
 import os
 import json
 from src.indexer.inverted_index import InvertedIndex
-from src.indexer.persistence import save_index
+from src.indexer.persistence import save_inverted_index
 
 def build_inverted_index(corpus_directory, index_file):
     inverted_index = InvertedIndex()
@@ -18,6 +18,6 @@ def build_inverted_index(corpus_directory, index_file):
     save_index(inverted_index, index_file)
 
 if __name__ == '__main__':
-    corpus_dir = '../data/bbc'  # Adjust path as necessary
+    corpus_dir = 'data/bbc'  # Adjust path as necessary
     index_file_path = '../data/index/inverted_index.dat'  # Adjust path as necessary
     build_inverted_index(corpus_dir, index_file_path)
