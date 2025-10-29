@@ -25,11 +25,21 @@ class InvertedIndex:
         if not os.path.isdir(corpus_dir):
             return
 
-        files = sorted(f for f in os.listdir(corpus_dir) if os.path.isfile(os.path.join(corpus_dir, f)))
-        self.doc_ids = files
+        # percorre recursivamente subpastas e usa caminhos relativos como doc_id
+        files = []
+        for root, _, filenames in os.walk(corpus_dir):
+            for fname in filenames:
+                fpath = os.path.join(root, fname)
+                if os.path.isfile(fpath):
+                    # doc_id será o caminho relativo dentro de corpus_dir (p.ex. "sport/123.txt")
+                    rel = os.path.relpath(fpath, corpus_dir).replace("\\", "/")
+                    files.append((rel, fpath))
 
-        for fname in files:
-            fpath = os.path.join(corpus_dir, fname)
+        # ordena por doc_id (relativo) para consistência
+        files.sort(key=lambda x: x[0])
+        self.doc_ids = [rel for rel, _ in files]
+
+        for rel, fpath in files:
             try:
                 with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
                     text = f.read()
@@ -37,15 +47,15 @@ class InvertedIndex:
                 text = ""
 
             tokens = tokenize(text)
-            self.doc_lengths[fname] = len(tokens)
+            self.doc_lengths[rel] = len(tokens)
             freqs = defaultdict(int)
             for t in tokens:
                 freqs[t] += 1
 
             for term, freq in freqs.items():
                 posting = self.index.setdefault(term, {})
-                posting[fname] = posting.get(fname, 0) + freq
-                self.trie.insert(term, fname, freq)
+                posting[rel] = posting.get(rel, 0) + freq
+                self.trie.insert(term, rel, freq)
 
         self._compute_term_stats()
 
