@@ -1,38 +1,26 @@
 class TrieNode:
     def __init__(self):
         self.children = {}
-        self.documents = set()
+        self.is_end = False
+        self.postings = {}  # doc_id -> freq
 
-class Trie:
+class TrieCompact:
     def __init__(self):
         self.root = TrieNode()
 
-    def insert(self, word, document_id):
+    def insert(self, term: str, doc_id: str, freq: int = 1):
         node = self.root
-        for char in word:
-            if char not in node.children:
-                node.children[char] = TrieNode()
-            node = node.children[char]
-        node.documents.add(document_id)
+        for ch in term:
+            node = node.children.setdefault(ch, TrieNode())
+        node.is_end = True
+        node.postings[doc_id] = node.postings.get(doc_id, 0) + freq
 
-    def search(self, word):
+    def get_postings(self, term: str):
         node = self.root
-        for char in word:
-            if char not in node.children:
-                return set()
-            node = node.children[char]
-        return node.documents
-
-    def starts_with(self, prefix):
-        node = self.root
-        for char in prefix:
-            if char not in node.children:
-                return set()
-            node = node.children[char]
-        return self._collect_documents(node)
-
-    def _collect_documents(self, node):
-        documents = set(node.documents)
-        for child in node.children.values():
-            documents.update(self._collect_documents(child))
-        return documents
+        for ch in term:
+            if ch not in node.children:
+                return {}
+            node = node.children[ch]
+        if node.is_end:
+            return dict(node.postings)
+        return {}
