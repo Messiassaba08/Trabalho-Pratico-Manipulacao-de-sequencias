@@ -1,18 +1,4 @@
-"""
-Módulo de persistência (atualizado)
-----------------------------------
-
-Este módulo foi simplificado para evitar confusão com formatos antigos.
-Atualmente, a persistência do índice invertido é feita diretamente pelos
-métodos da classe `InvertedIndex`:
-
-  - InvertedIndex.save(path)        -> salva em JSON texto
-  - InvertedIndex.load(path)        -> carrega de JSON texto
-  - InvertedIndex.load_or_build(...) -> carrega ou constrói e persiste
-
-Para manter compatibilidade mínima, expomos funções auxiliares que 
-delegam para a implementação oficial da classe `InvertedIndex`.
-"""
+"""Wrappers de persistência baseados em JSON via InvertedIndex.save/load."""
 
 from .inverted_index import InvertedIndex
 

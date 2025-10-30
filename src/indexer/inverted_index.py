@@ -13,10 +13,10 @@ def tokenize(text):
 class InvertedIndex:
     def __init__(self):
         self.index = {}          # term -> {doc_id: freq}
-        self.doc_lengths = {}    # doc_id -> token count
-        self.doc_ids = []        # ordered list of doc_ids (filenames)
+        self.doc_lengths = {}    # doc_id -> número de tokens
+        self.doc_ids = []        # lista ordenada de doc_ids (relativos)
         self.trie = TrieCompact()
-        self.term_stats = {}     # term -> (mean, stddev)
+        self.term_stats = {}     # term -> (média, desvio padrão)
         self.corpus_dir = None
 
     def build_from_corpus(self, corpus_dir):
@@ -25,17 +25,16 @@ class InvertedIndex:
         if not os.path.isdir(corpus_dir):
             return
 
-        # percorre recursivamente subpastas e usa caminhos relativos como doc_id
+        # Caminhos relativos como doc_id (ex.: "sport/123.txt")
         files = []
         for root, _, filenames in os.walk(corpus_dir):
             for fname in filenames:
                 fpath = os.path.join(root, fname)
                 if os.path.isfile(fpath):
-                    # doc_id será o caminho relativo dentro de corpus_dir (p.ex. "sport/123.txt")
                     rel = os.path.relpath(fpath, corpus_dir).replace("\\", "/")
                     files.append((rel, fpath))
 
-        # ordena por doc_id (relativo) para consistência
+        # Ordena para consistência
         files.sort(key=lambda x: x[0])
         self.doc_ids = [rel for rel, _ in files]
 

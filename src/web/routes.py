@@ -2,7 +2,6 @@ from flask import Blueprint, render_template_string, request, current_app, url_f
 from ri.query_parser import parse_query, extract_terms
 from ri.ranking import docs_for_ast, score_docs
 import os
-from urllib.parse import quote, unquote
 
 main = Blueprint('main', __name__)
 
@@ -176,9 +175,9 @@ BASE_HTML = """
         }
 
         .pagination {
-        text-align: center;
-        margin-top: 20px;  /* antes era 50px */
-        margin-bottom: 40px; /* adiciona espaçamento inferior equilibrado */
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 40px;
         }
 
         .pagination a {

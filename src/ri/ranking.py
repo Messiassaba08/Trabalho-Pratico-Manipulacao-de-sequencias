@@ -1,35 +1,36 @@
 from typing import List, Set
 
-def evaluate_postings_for_term(index, term):
+
+def _evaluate_postings_for_term(index, term) -> Set[str]:
+    """Retorna o conjunto de doc_ids que contêm o termo."""
     postings = index.get_postings(term)
     return set(postings.keys())
 
-def docs_for_ast(index, ast):
+
+def docs_for_ast(index, ast) -> Set[str]:
+    """Executa a expressão booleana (AST) e retorna os doc_ids candidatos."""
     if ast is None:
         return set()
     from ri.query_parser import Term, And, Or
     if isinstance(ast, Term):
-        return evaluate_postings_for_term(index, ast.term)
+        return _evaluate_postings_for_term(index, ast.term)
     if isinstance(ast, And):
-        left = docs_for_ast(index, ast.left)
-        right = docs_for_ast(index, ast.right)
-        return left & right
+        return docs_for_ast(index, ast.left) & docs_for_ast(index, ast.right)
     if isinstance(ast, Or):
-        left = docs_for_ast(index, ast.left)
-        right = docs_for_ast(index, ast.right)
-        return left | right
+        return docs_for_ast(index, ast.left) | docs_for_ast(index, ast.right)
     return set()
 
+
 def score_docs(index, query_terms: List[str], candidate_docs: Set[str]):
+    """Calcula a média dos z-scores por documento."""
     scores = {}
     for doc in candidate_docs:
-        zs = []
-        for term in query_terms:
-            z = index.zscore_for(term, doc)
-            zs.append(z)
+        zs = [index.zscore_for(term, doc) for term in query_terms]
         scores[doc] = sum(zs) / len(zs) if zs else 0.0
     return scores
 
+
+# Funções legadas abaixo não são usadas pela busca atual, mantidas por compatibilidade.
 def calculate_relevance(document, query_terms, corpus):
     relevance_score = 0
     term_frequencies = {term: document.count(term) for term in query_terms}
