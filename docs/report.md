@@ -22,10 +22,12 @@ Detalhes da Implementação
    O índice invertido é gerenciado em src/indexer/inverted_index.py. Este módulo associa termos a IDs de documentos, permitindo a recuperação rápida de documentos que contêm termos específicos. O índice é construído durante o processamento inicial do corpus da BBC News.
 
 3. Persistência
-   Para garantir que o índice invertido possa ser reutilizado entre sessões, o módulo src/indexer/persistence.py lida com o salvamento e carregamento do índice de e para o disco. O índice é armazenado em um formato binário personalizado, que é eficiente tanto para armazenamento quanto para recuperação.
+   Para garantir que o índice invertido possa ser reutilizado entre sessões, a própria classe `InvertedIndex` (em `src/indexer/inverted_index.py`) lida com o salvamento e carregamento do índice em disco por meio dos métodos `save`, `load` e `load_or_build`. O índice é armazenado em **formato texto JSON** (arquivo `data/index/inverted_index.json`). Essa escolha privilegia legibilidade, interoperabilidade e depuração simples, além de atender ao requisito de não utilizar `pickle` nem serialização de objetos binários.
 
 4. Processamento de Consultas
-   O processamento de consultas é tratado em src/ri/query_parser.py, onde expressões booleanas são analisadas (parseadas) para um formato adequado para busca. O módulo src/ri/search.py recupera documentos com base nas consultas analisadas e os classifica (rankeia) usando a pontuação de relevância implementada em src/ri/ranking.py.
+   O processamento de consultas é tratado em `src/ri/query_parser.py`, onde expressões booleanas são analisadas (parseadas) para uma AST com nós `Term`, `And` e `Or`. A execução da consulta e o ranqueamento são realizados em `src/ri/search.py`, que utiliza utilitários de `src/ri/ranking.py` para:
+   - Determinar documentos candidatos via execução booleana sobre a AST (AND=interseção, OR=união);
+   - Calcular a relevância de cada documento como a **média dos z-scores** dos termos da consulta.
 
 5. Interface Web
    A aplicação web é construída usando Flask, com rotas definidas em src/web/routes.py. A interface permite aos usuários inserir consultas e visualizar os resultados. Os resultados são exibidos em formato paginado, com snippets (fragmentos) destacando os termos relevantes.

@@ -1,12 +1,29 @@
-def load_inverted_index(file_path):
-    inverted_index = {}
-    with open(file_path, 'r') as file:
-        for line in file:
-            term, doc_ids = line.strip().split(':')
-            inverted_index[term] = list(map(int, doc_ids.split(',')))
-    return inverted_index
+"""
+Módulo de persistência (atualizado)
+----------------------------------
 
-def save_inverted_index(inverted_index, file_path):
-    with open(file_path, 'w') as file:
-        for term, doc_ids in inverted_index.items():
-            file.write(f"{term}:{','.join(map(str, doc_ids))}\n")
+Este módulo foi simplificado para evitar confusão com formatos antigos.
+Atualmente, a persistência do índice invertido é feita diretamente pelos
+métodos da classe `InvertedIndex`:
+
+  - InvertedIndex.save(path)        -> salva em JSON texto
+  - InvertedIndex.load(path)        -> carrega de JSON texto
+  - InvertedIndex.load_or_build(...) -> carrega ou constrói e persiste
+
+Para manter compatibilidade mínima, expomos funções auxiliares que 
+delegam para a implementação oficial da classe `InvertedIndex`.
+"""
+
+from .inverted_index import InvertedIndex
+
+
+def save_inverted_index(index: InvertedIndex, file_path: str) -> None:
+    """Salva o índice invertido em formato JSON (texto)."""
+    index.save(file_path)
+
+
+def load_inverted_index(file_path: str) -> InvertedIndex:
+    """Carrega o índice invertido a partir de um arquivo JSON (texto)."""
+    idx = InvertedIndex()
+    idx.load(file_path)
+    return idx

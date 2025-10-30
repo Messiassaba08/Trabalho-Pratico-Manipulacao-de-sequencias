@@ -1,34 +1,43 @@
 import unittest
-from src.indexer.trie import Trie
+from src.indexer.trie import TrieCompact
 
-class TestTrie(unittest.TestCase):
+
+class TestTrieCompact(unittest.TestCase):
 
     def setUp(self):
-        self.trie = Trie()
+        self.trie = TrieCompact()
 
-    def test_insert_and_search(self):
-        self.trie.insert("hello", 1)
-        self.trie.insert("hello", 2)
-        self.trie.insert("world", 3)
+    def test_insert_and_get_postings_basic(self):
+        self.trie.insert("hello", "doc1", 1)
+        self.trie.insert("hello", "doc2", 2)
+        self.trie.insert("world", "doc3", 1)
 
-        self.assertTrue(self.trie.search("hello"))
-        self.assertTrue(self.trie.search("world"))
-        self.assertFalse(self.trie.search("notfound"))
+        postings_hello = self.trie.get_postings("hello")
+        postings_world = self.trie.get_postings("world")
+        postings_none = self.trie.get_postings("notfound")
 
-    def test_search_with_documents(self):
-        self.trie.insert("test", 1)
-        self.trie.insert("test", 2)
+        self.assertEqual(postings_hello.get("doc1"), 1)
+        self.assertEqual(postings_hello.get("doc2"), 2)
+        self.assertEqual(postings_world.get("doc3"), 1)
+        self.assertEqual(postings_none, {})
 
-        documents = self.trie.search("test")
-        self.assertIn(1, documents)
-        self.assertIn(2, documents)
+    def test_compacted_edges_split_and_merge_paths(self):
+        # Insere termos com prefixos comuns para exercitar splits em arestas
+        self.trie.insert("compress", "d1", 1)
+        self.trie.insert("company", "d2", 1)
+        self.trie.insert("comparison", "d3", 1)
 
-    def test_insert_empty_string(self):
-        with self.assertRaises(ValueError):
-            self.trie.insert("", 1)
+        # Todos devem ser recuperáveis exatamente, sem prefix matching parcial
+        self.assertIn("d1", self.trie.get_postings("compress"))
+        self.assertIn("d2", self.trie.get_postings("company"))
+        self.assertIn("d3", self.trie.get_postings("comparison"))
+        self.assertEqual(self.trie.get_postings("comp"), {})  # não é termo completo
 
-    def test_search_empty_string(self):
-        self.assertFalse(self.trie.search(""))
+    def test_empty_term_handling(self):
+        # Inserção de string vazia não deve quebrar e não cria termo
+        self.trie.insert("", "d1", 1)
+        self.assertEqual(self.trie.get_postings(""), {})
+
 
 if __name__ == '__main__':
     unittest.main()
