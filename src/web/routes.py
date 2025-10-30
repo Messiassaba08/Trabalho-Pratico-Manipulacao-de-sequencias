@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template_string, request, current_app, url_for
 from ri.query_parser import parse_query, extract_terms
 from ri.ranking import docs_for_ast, score_docs
+import os
+from urllib.parse import quote, unquote
 
 main = Blueprint('main', __name__)
 
@@ -190,6 +192,51 @@ BASE_HTML = """
             text-decoration: underline;
         }
 
+        .document-view {
+            width: 70%;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .document-view h2 {
+            color: #1a73e8;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .document-view .doc-path {
+            color: #5f6368;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .document-view .doc-content {
+            color: #202124;
+            font-size: 16px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #1a73e8;
+            color: white;
+            text-decoration: none;
+            border-radius: 24px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            transition: background 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: #155ab6;
+        }
+
     </style>
 </head>
 <body>
@@ -265,11 +312,15 @@ def search():
         if best_term is None:
             best_term = query_terms[0] if query_terms else ''
         snippet = index.snippet_for(doc_id, best_term)
+        doc_url = url_for('main.view_document', doc_id=doc_id, q=q, page=page)
+        
+        # Remove a extensão .txt do título do link
+        display_title = doc_id.replace('.txt', '') if doc_id.endswith('.txt') else doc_id
 
         results_html += f"""
         <div class="result-item">
             <div class="link">{doc_id}</div>
-            <a href="#">{doc_id}</a><br>
+            <a href="{doc_url}">{display_title}</a><br>
             <div class="snippet">{snippet}</div>
         </div>
         """
@@ -283,8 +334,57 @@ def search():
     if end < total:
         next_url = url_for('main.search') + f"?q={q}&page={page+1}"
         nav += f'<a href="{next_url}">próxima &raquo;</a>'
-
     if nav:
         results_html += f"<div class='pagination'>{nav}</div>"
 
+    return render_template_string(BASE_HTML, q=q, body=results_html)
+
+@main.route('/document/<path:doc_id>')
+def view_document(doc_id):
+    """Exibe o conteúdo completo de um documento."""
+    index = current_app.indexer
+    corpus_dir = current_app.corpus_dir
+    
+    # Parâmetros para voltar à busca
+    q = request.args.get('q', '')
+    page = request.args.get('page', '1')
+    
+    # Caminho completo do documento
+    doc_path = os.path.join(corpus_dir, doc_id)
+    
+    # Verifica se o arquivo existe
+    if not os.path.isfile(doc_path):
+        error_html = f"""
+        <div class="document-view">
+            <a href="{url_for('main.search', q=q, page=page)}" class="back-button">← Voltar aos resultados</a>
+            <h2>Documento não encontrado</h2>
+            <p>O arquivo <code>{doc_id}</code> não foi encontrado.</p>
+        </div>
+        """
+        return render_template_string(BASE_HTML, body=error_html)
+    
+    # Lê o conteúdo do documento
+    try:
+        with open(doc_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+    except Exception as e:
+        error_html = f"""
+        <div class="document-view">
+            <a href="{url_for('main.search', q=q, page=page)}" class="back-button">← Voltar aos resultados</a>
+            <h2>Erro ao ler documento</h2>
+            <p>Erro: {e}</p>
+        </div>
+        """
+        return render_template_string(BASE_HTML, body=error_html)
+    
+    # Monta o HTML do documento
+    doc_html = f"""
+    <div class="document-view">
+        <a href="{url_for('main.search', q=q, page=page)}" class="back-button">← Voltar aos resultados</a>
+        <div class="doc-path">{doc_id}</div>
+        <div class="doc-content">{content}</div>
+    </div>
+    """
+    
+    return render_template_string(BASE_HTML, body=doc_html)
     return render_template_string(BASE_HTML, q=q, body=results_html)
