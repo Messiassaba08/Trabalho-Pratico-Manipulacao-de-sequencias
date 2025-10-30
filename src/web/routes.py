@@ -22,6 +22,7 @@ BASE_HTML = """
         .search-container {
             text-align: center;
             margin-top: 10%;
+            position: relative;
         }
 
         h1 {
@@ -48,7 +49,7 @@ BASE_HTML = """
             transition: box-shadow 0.2s ease;
         }
 
-        form:hover, input[type="text"]:focus {
+        form:hover {
             box-shadow: 0 3px 8px rgba(0,0,0,0.25);
         }
 
@@ -58,6 +59,11 @@ BASE_HTML = """
             border: none;
             outline: none;
             font-size: 16px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            box-shadow: none;
         }
 
         button {
@@ -74,6 +80,47 @@ BASE_HTML = """
 
         button:hover {
             background: #155ab6;
+        }
+
+        .help-icon {
+            position: relative;
+            display: inline-block;
+            font-weight: bold;
+            color: #1a73e8;
+            cursor: pointer;
+            border: 2px solid #1a73e8;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            line-height: 18px;
+            text-align: center;
+            font-size: 15px;
+            user-select: none;
+        }
+
+        .help-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            color: #333;
+            text-align: left;
+            border-radius: 8px;
+            padding: 15px;
+            width: 320px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: 14px;
+            line-height: 1.5;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            z-index: 10;
+        }
+
+        .help-icon:hover .help-tooltip {
+            visibility: visible;
+            opacity: 1;
         }
 
         .results {
@@ -127,8 +174,9 @@ BASE_HTML = """
         }
 
         .pagination {
-            text-align: center;
-            margin-top: 50px;
+        text-align: center;
+        margin-top: 20px;  /* antes era 50px */
+        margin-bottom: 40px; /* adiciona espaçamento inferior equilibrado */
         }
 
         .pagination a {
@@ -141,6 +189,7 @@ BASE_HTML = """
         .pagination a:hover {
             text-decoration: underline;
         }
+
     </style>
 </head>
 <body>
@@ -149,6 +198,16 @@ BASE_HTML = """
         <form action="{{ url_for('main.search') }}" method="get">
             <input type="text" name="q" value="{{ q|default('') }}" placeholder="Pesquise algo..." autocomplete="off">
             <button type="submit">Buscar</button>
+            <div class="help-icon">?
+                <div class="help-tooltip">
+                    <b>Como fazer uma busca:</b><br><br>
+                    Sua consulta pode ser uma <b>expressão Booleana</b> formada por palavras e conectores lógicos.<br><br>
+                    Use <b>AND</b> para combinar termos e <b>OR</b> para incluir alternativas (em maiúsculas).<br>
+                    Você também pode usar <b>parênteses</b> para alterar a precedência.<br><br>
+                    <b>Exemplo:</b><br>
+                    (<i>casa AND piscina</i>) OR praia
+                </div>
+            </div>
         </form>
     </div>
     {{ body|safe }}
