@@ -1,24 +1,17 @@
-# BBC Search — Guia Rápido
+# Guia Rápido do Buscador
 
-Aplicação web em Flask para buscar no corpus BBC (data/bbc). Este guia traz só o essencial para instalar e rodar.
+Aplicação web em Flask para buscar no corpus BBC (data/bbc). 
 
 ## Requisitos
 
 - Python 3.8+
+- Flask
 
 ## Instalação
 
 ```
 pip install -r requirements.txt
 ```
-
-## Construir índice (opcional)
-
-```
-python scripts/build_index.py
-```
-
-Se o arquivo `data/index/inverted_index.json` não existir, ele será criado automaticamente no primeiro run.
 
 ## Executar
 
